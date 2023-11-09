@@ -1,10 +1,15 @@
+import UserModel from "../models/User.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { validationResult } from "express-validator";
-import UserModel from "../models/User.js";
 
 export const login = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json(errors.array());
+    }
+
     const user = await UserModel.findOne({ email: req.body.email });
     if (!user) {
       return res.status(404).json({
