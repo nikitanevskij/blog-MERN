@@ -27,6 +27,8 @@ export const getOne = async (req, res) => {
         returnDocument: "after",
       },
     )
+      .populate("user")
+      .exec()
       .then((doc) => {
         if (!doc) {
           return res.status(404).json({
@@ -97,7 +99,6 @@ export const remove = async (req, res) => {
     });
   }
 };
-
 export const update = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -125,6 +126,23 @@ export const update = async (req, res) => {
     console.log(err);
     res.status(500).json({
       message: "Не удалось обновить статью",
+    });
+  }
+};
+export const getTags = async (req, res) => {
+  try {
+    const posts = await PostModel.find().limit(5).exec();
+
+    const tags = posts
+      .map((obj) => obj.tags)
+      .flat()
+      .slice(0, 5);
+
+    return res.json([...new Set(tags)]);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить теги",
     });
   }
 };
