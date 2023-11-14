@@ -3,8 +3,17 @@ import { validationResult } from "express-validator";
 
 export const getAll = async (req, res) => {
   try {
-    const posts = await PostModel.find().populate("user").exec(); // если не вызывать два последних метода, вернется только id пользователя
-    res.json(posts);
+    const { sort } = req.body;
+    console.log(sort);
+    if (sort === "sort_count") {
+      const postsByPopular = await PostModel.find()
+        .sort({ viewsCount: -1 })
+        .populate("user")
+        .exec();
+      return res.json(postsByPopular);
+    }
+    const postsByData = await PostModel.find().sort({ createdAt: -1 }).populate("user").exec(); // если не вызывать два последних метода, вернется только id пользователя
+    res.json(postsByData);
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -59,7 +68,7 @@ export const create = async (req, res) => {
     const doc = new PostModel({
       title: req.body.title,
       text: req.body.text,
-      tags: req.body.tags.split(","),
+      tags: req.body.tags,
       imageUrl: req.body.imageUrl,
       user: req.userId,
     });
@@ -132,13 +141,8 @@ export const update = async (req, res) => {
 export const getTags = async (req, res) => {
   try {
     const posts = await PostModel.find().limit(5).exec();
-
-    const tags = posts
-      .map((obj) => obj.tags)
-      .flat()
-      .slice(0, 5);
-
-    return res.json([...new Set(tags)]);
+    const tags = posts.map((obj) => obj.tags.split(", ")).flat();
+    return res.json([...new Set(tags)].slice(0, 5));
   } catch (err) {
     console.log(err);
     res.status(500).json({
@@ -146,3 +150,14 @@ export const getTags = async (req, res) => {
     });
   }
 };
+// export const getAllSortByDate = async (req, res) => {
+//   try {
+//     const posts = await PostModel.find().sort({ updated_At: 1 }).populate("user").exec();
+//     res.json(posts);
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Не удалось получить все статьи",
+//     });
+//   }
+// };
