@@ -5,14 +5,13 @@ const CommentSchema = new mongoose.Schema(
     text: {
       type: String,
       required: true,
-      unique: true,
     },
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    imageId: {
+    post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Card",
       required: true,

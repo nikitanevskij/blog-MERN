@@ -141,7 +141,7 @@ export const update = async (req, res) => {
 export const getTags = async (req, res) => {
   try {
     const posts = await PostModel.find().limit(5).exec();
-    const tags = posts.map((obj) => obj.tags.split(", ")).flat();
+    const tags = posts.map((obj) => obj.tags.split(",")).flat();
     return res.json([...new Set(tags)].slice(0, 5));
   } catch (err) {
     console.log(err);
@@ -150,14 +150,17 @@ export const getTags = async (req, res) => {
     });
   }
 };
-// export const getAllSortByDate = async (req, res) => {
-//   try {
-//     const posts = await PostModel.find().sort({ updated_At: 1 }).populate("user").exec();
-//     res.json(posts);
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).json({
-//       message: "Не удалось получить все статьи",
-//     });
-//   }
-// };
+export const getFilterPostsbyTags = async (req, res) => {
+  try {
+    const { filterTag } = req.body;
+    const postsByData = await PostModel.find({ tags: { $regex: filterTag } })
+      .populate("user")
+      .exec();
+    res.json(postsByData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось получить все статьи",
+    });
+  }
+};

@@ -2,12 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import { registerValidation, loginValidation } from "./validations/auth.js";
 import checkAuth from "./utils/checkAuth.js";
-import { UserController, PostController } from "./controllers/index.js";
+import { UserController, PostController, CommentController } from "./controllers/index.js";
 import cors from "cors";
 import { postCreateValidation } from "./validations/post.js";
 import multer from "multer";
-import CardModel from "./models/Card.js";
-import CommentModel from "./models/Comment.js";
 
 mongoose
   .connect("")
@@ -41,6 +39,7 @@ app.post("/post", checkAuth, postCreateValidation, PostController.create);
 app.delete("/posts/:id", checkAuth, PostController.remove);
 app.patch("/posts/:id", checkAuth, postCreateValidation, PostController.update);
 app.get("/tags", PostController.getTags);
+app.post("/posts/tags", PostController.getFilterPostsbyTags);
 
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   res.json({
@@ -48,130 +47,134 @@ app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   });
 });
 
-//Для тестового задания
-app.get("/cards", async (req, res) => {
-  try {
-    const cards = await CardModel.find();
-    res.json(cards);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Не удалось получить карточки товаров",
-    });
-  }
-});
+app.post("/comments", checkAuth, CommentController.create);
+app.get("/comments/:id", CommentController.getAllById);
+app.get("/comments/", CommentController.getAll);
 
-app.get("/cards/:id", async (req, res) => {
-  try {
-    const cardId = req.params.id;
+//Для тестового задания (нужна модель комментариев, забрал для другого проекта)
+// app.get("/cards", async (req, res) => {
+//   try {
+//     const cards = await CardModel.find();
+//     res.json(cards);
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Не удалось получить карточки товаров",
+//     });
+//   }
+// });
 
-    await CardModel.findOneAndUpdate(
-      {
-        _id: cardId,
-      },
-      {
-        $inc: { viewsCount: 1 },
-      },
-      {
-        returnDocument: "after",
-      },
-    )
+// app.get("/cards/:id", async (req, res) => {
+//   try {
+//     const cardId = req.params.id;
 
-      .then((doc) => {
-        if (!doc) {
-          return res.status(404).json({
-            message: "Не удалось найти статью",
-          });
-        }
-        res.json(doc);
-      })
-      .catch((err) => {
-        console.log(err);
-        return res.status(500).json({
-          message: "Не удалось вернуть статью",
-        });
-      });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Не удалось получить запрошенную статью",
-    });
-  }
-});
+//     await CardModel.findOneAndUpdate(
+//       {
+//         _id: cardId,
+//       },
+//       {
+//         $inc: { viewsCount: 1 },
+//       },
+//       {
+//         returnDocument: "after",
+//       },
+//     )
 
-app.post("/cards/", async (req, res) => {
-  try {
-    const doc = new CardModel({
-      title: req.body.title,
-      imageUrl: req.body.imageUrl,
-    });
-    const post = await doc.save();
-    res.status(200).json(post);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Не удалось создать статью",
-    });
-  }
-});
+//       .then((doc) => {
+//         if (!doc) {
+//           return res.status(404).json({
+//             message: "Не удалось найти статью",
+//           });
+//         }
+//         res.json(doc);
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//         return res.status(500).json({
+//           message: "Не удалось вернуть статью",
+//         });
+//       });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Не удалось получить запрошенную статью",
+//     });
+//   }
+// });
 
-app.post("/comment", checkAuth, async (req, res) => {
-  try {
-    const doc = new CommentModel({
-      text: req.body.text,
-      imageId: req.body.imageId,
-      userId: req.userId,
-    });
-    const post = await doc.save();
-    res.status(200).json(post);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Не удалось создать статью",
-    });
-  }
-});
+// app.post("/cards/", async (req, res) => {
+//   try {
+//     const doc = new CardModel({
+//       title: req.body.title,
+//       imageUrl: req.body.imageUrl,
+//     });
+//     const post = await doc.save();
+//     res.status(200).json(post);
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Не удалось создать статью",
+//     });
+//   }
+// });
 
-app.get("/comment/:id", async (req, res) => {
-  try {
-    const imageId = req.params.id;
-    const comments = await CommentModel.find({ imageId }).populate("userId").exec();
-    res.json(comments);
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      message: "Не удалось вернуть комментарии",
-    });
-  }
-});
+// app.post("/comment", checkAuth, async (req, res) => {
+//   try {
+//     const doc = new CommentModel({
+//       text: req.body.text,
+//       imageId: req.body.imageId,
+//       userId: req.userId,
+//     });
+//     const post = await doc.save();
+//     res.status(200).json(post);
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Не удалось создать статью",
+//     });
+//   }
+// });
 
-app.delete("/comment/:id", checkAuth, async (req, res) => {
-  try {
-    const commentId = req.params.id;
-    await CommentModel.findOneAndDelete({
-      _id: commentId,
-    })
-      .then((doc) => {
-        if (!doc) {
-          return res.status(404).json({
-            message: "Не удалось найти статью",
-          });
-        }
-        res.json({ success: true });
-      })
-      .catch((err) => {
-        console.log(err);
-        return res.status(500).json({
-          message: "Не удалось удалить статью",
-        });
-      });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({
-      message: "Не удалось удалить статью",
-    });
-  }
-});
+// app.get("/comment/:id", async (req, res) => {
+//   try {
+//     const imageId = req.params.id;
+//     const comments = await CommentModel.find({ imageId }).populate("userId").exec();
+//     res.json(comments);
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).json({
+//       message: "Не удалось вернуть комментарии",
+//     });
+//   }
+// });
+
+// app.delete("/comment/:id", checkAuth, async (req, res) => {
+//   try {
+//     const commentId = req.params.id;
+//     await CommentModel.findOneAndDelete({
+//       _id: commentId,
+//     })
+//       .then((doc) => {
+//         if (!doc) {
+//           return res.status(404).json({
+//             message: "Не удалось найти статью",
+//           });
+//         }
+//         res.json({ success: true });
+//       })
+//       .catch((err) => {
+//         console.log(err);
+//         return res.status(500).json({
+//           message: "Не удалось удалить статью",
+//         });
+//       });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({
+//       message: "Не удалось удалить статью",
+//     });
+//   }
+// });
 
 app.listen(4444, (err) => {
   if (err) {
