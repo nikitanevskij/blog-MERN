@@ -50,6 +50,7 @@ app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
 app.post("/comments", checkAuth, CommentController.create);
 app.get("/comments/:id", CommentController.getAllById);
 app.get("/comments/", CommentController.getAll);
+app.delete("/comments/:id", checkAuth, CommentController.deleteComment);
 
 //Для тестового задания (нужна модель комментариев, забрал для другого проекта)
 // app.get("/cards", async (req, res) => {

@@ -47,3 +47,31 @@ export const getAllById = async (req, res) => {
     });
   }
 };
+
+export const deleteComment = async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    await CommentModel.findOneAndDelete({
+      _id: commentId,
+    })
+      .then((doc) => {
+        if (!doc) {
+          return res.status(404).json({
+            message: "Не удалось найти статью",
+          });
+        }
+        res.json({ success: true });
+      })
+      .catch((err) => {
+        console.log(err);
+        return res.status(500).json({
+          message: "Не удалось удалить статью",
+        });
+      });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Не удалось удалить статью",
+    });
+  }
+};
